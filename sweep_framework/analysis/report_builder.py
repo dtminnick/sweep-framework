@@ -1,7 +1,7 @@
 
 import pandas as pd
 from typing import Optional
-from sweep_framework.analysis.sweep_analyzer import SweepAnalyzer
+from sweep_framework.analysis.sweep.sweep_analyzer import SweepAnalyzer
 
 class ReportBuilder:
     def __init__(self, analyzer: SweepAnalyzer):

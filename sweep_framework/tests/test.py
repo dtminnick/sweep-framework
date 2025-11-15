@@ -53,13 +53,13 @@ class Dataset:
 from sweep_framework.config.model_config import ModelConfig
 
 config = ModelConfig(
-    model_type="distilbert",
-    loss_type="focal",
+    run_type="LSTM",
+    # loss_type="focal",
     learning_rate=1e-4,
-    num_epochs=5,
+    num_epochs=1,
     patience=2,
-    optimizer_type="adamw",
-    scheduler_type="linear",
+    optimizer_type="Adam",
+    # scheduler_type="linear",
     hidden_dim=256,
     dropout=0.3
 )

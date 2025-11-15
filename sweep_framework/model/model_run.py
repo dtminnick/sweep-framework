@@ -7,7 +7,7 @@ from sweep_framework.model.loss_strategy import LossStrategy
 import torch
 
 class ModelRun:
-    def __init(
+    def __init__(
         self,
         config: ModelConfig,
         dataset: Dataset,
@@ -15,7 +15,9 @@ class ModelRun:
     ):
         self.config = config
         self.dataset = dataset
-        self.loss_strategy = loss_strategy or LossStrategy(config.loss_type)
+        self.loss_strategy = loss_strategy or LossStrategy(
+            "focal" if config.use_focal_loss else config.criterion
+        )
         self.model = config.build_model()
         self.optimizer = config.build_optimizer(self.model.parameters())
         self.scheduler = config.build_scheduler(self.optimizer)

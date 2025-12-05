@@ -1,69 +1,69 @@
 
-from datasets import load_dataset
+"""
+Example script: Run a single LSTM model on SST2 using the sweep framework.
 
+Steps:
+1. Load the Stanford Sentiment Treebank (SST2) dataset from HuggingFace.
+2. Tokenize sentences with a HuggingFace tokenizer.
+3. Wrap data in the framework's Dataset class and build DataLoaders.
+4. Configure an LSTM run with ModelConfig.
+5. Train and evaluate using ModelRun.
+6. Print summary metrics.
+"""
 
-import sys
-import os
+import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from sweep_framework.model.model_run import ModelRun
 
-dataset = load_dataset("stanfordnlp/sst2")
-
-from torch.utils.data import Dataset, DataLoader
+import torch
+from datasets import load_dataset
 from transformers import AutoTokenizer
 
-class SST2TorchDataset(Dataset):
-    def __init__(self, hf_dataset, tokenizer, max_len=128):
-        self.data = hf_dataset
-        self.tokenizer = tokenizer
-        self.max_len = max_len
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        item = self.data[idx]
-        tokens = self.tokenizer(
-            item["sentence"],
-            padding="max_length",
-            truncation=True,
-            max_length=self.max_len,
-            return_tensors="pt"
-        )
-        return {
-            "input": tokens["input_ids"].squeeze(0),
-            "target": item["label"]
-        }
-
-tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-train_ds = SST2TorchDataset(dataset["train"], tokenizer)
-val_ds = SST2TorchDataset(dataset["validation"], tokenizer)
-test_ds = SST2TorchDataset(dataset["test"], tokenizer)
-
-train_loader = DataLoader(train_ds, batch_size=32, shuffle=True)
-val_loader = DataLoader(val_ds, batch_size=32)
-test_loader = DataLoader(test_ds, batch_size=32)
-
-class Dataset:
-    def __init__(self, train_loader, val_loader, test_loader):
-        self.train_loader = train_loader
-        self.val_loader = val_loader
-        self.test_loader = test_loader
-
 from sweep_framework.config.model_config import ModelConfig
+from sweep_framework.data.dataset import Dataset
+from sweep_framework.model.model_run import ModelRun
 
+
+# 1. Load HuggingFace SST2 dataset
+hf_ds = load_dataset("stanfordnlp/sst2")
+
+# 2. Initialize tokenizer
+tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
+
+# 3. Prepare examples as (text, label) pairs
+train_examples = [(ex["sentence"], int(ex["label"])) 
+                  for ex in hf_ds["train"] if ex["label"] != -1]
+val_examples   = [(ex["sentence"], int(ex["label"])) 
+                  for ex in hf_ds["validation"] if ex["label"] != -1]
+test_examples  = [(ex["sentence"], int(ex["label"])) 
+                  for ex in hf_ds["test"] if ex["label"] != -1]
+
+# Combine into one dataset object
+dataset = Dataset(train_examples + val_examples + test_examples)
+
+# Stratified split (80/10/10)
+dataset.stratify_split(train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=42)
+
+# Build DataLoaders with tokenizer
+dataset.build_loaders(tokenizer, batch_size=32, max_len=128)
+
+
+# 4. Configure model run
 config = ModelConfig(
-    run_type="LSTM",
-    # loss_type="focal",
-    learning_rate=1e-4,
+    run_type="LSTM",          # Choose "LSTM" or "GRU"
+    learning_rate=1e-3,
     num_epochs=1,
     patience=2,
     optimizer_type="Adam",
-    # scheduler_type="linear",
-    hidden_dim=256,
-    dropout=0.3
+    hidden_dim=128,
+    dropout=0.3,
+    embedding_dim=100,
+    vocab_size=tokenizer.vocab_size,  # must set vocab size
+    num_classes=2                     # SST2 is binary classification
 )
 
-run = ModelRun(config, Dataset(train_loader, val_loader, test_loader))
+# 5. Run training and evaluation
+run = ModelRun(config, dataset)
 run.run()
+
+# 6. Print summary
 print(run.export_summary())

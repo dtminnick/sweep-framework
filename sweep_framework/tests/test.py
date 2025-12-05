@@ -37,6 +37,9 @@ val_examples   = [(ex["sentence"], int(ex["label"]))
 test_examples  = [(ex["sentence"], int(ex["label"])) 
                   for ex in hf_ds["test"] if ex["label"] != -1]
 
+# labels = [label for _, label in train_examples + val_examples + test_examples]
+# print(set(labels))
+
 # Combine into one dataset object
 dataset = Dataset(train_examples + val_examples + test_examples)
 

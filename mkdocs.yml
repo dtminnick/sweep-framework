@@ -1,0 +1,22 @@
+
+docs_dir: sweep_framework/documentation
+
+site_name: Sweep Framework Documentation
+nav:
+  - Overview: overview.md
+  - Technical Documentation:
+      - Dataset: classes/dataset.md
+      - FocalLoss: classes/focal_loss.md
+      - LossStrategy: classes/loss_strategy.md
+      - MetricSet: classes/metric_set.md
+      - ModelConfig: classes/model_config.md
+      - ModelRun: classes/model_run.md
+      - ReportBuilder: classes/report_builder.md
+      - SweepAnalyzer: classes/sweep_analyzer.md
+      - SweepConfig: classes/sweep_config.md
+      - SweepRegistry: classes/sweep_registry.md
+      - Sweep: classes/sweep.md
+  - Usage:
+      - Unified Example: usage/unified_example.md
+theme:
+  name: material

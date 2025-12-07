@@ -9,6 +9,15 @@ class PlanDataset(BaseDataset):
     Dataset class for retirement plan dynamics.
     Converts numeric time-series into tensors for LSTM/GRU models.
     """
+    
+    def __init__(self, raw_data, preprocessor):
+        self.examples = [preprocessor.preprocess_plan(plan) for plan in raw_data]
+
+    def __len__(self):
+        return len(self.examples)
+
+    def __getitem__(self, idx):
+        return self.examples[idx]
 
     def stratify_split(self, train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=42):
         # implement stratified split for plan examples

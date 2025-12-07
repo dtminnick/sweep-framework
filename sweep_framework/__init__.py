@@ -10,6 +10,10 @@ and generating reports.
 # Expose key components at package level
 from .config.model_config import ModelConfig
 from .data.dataset import Dataset
+from .data.base_dataset import BaseDataset
+from .data.plan_dataset import PlanDataset
+from .data.sst_dataset import SSTDataset
+from .data.plan_preprocessor import PlanPreprocessor
 from .metrics.metric_set import MetricSet
 from .model.model_run import ModelRun
 from .model.focal_loss import FocalLoss
@@ -23,6 +27,10 @@ from .analysis.report_builder import ReportBuilder
 __all__ = [
     "ModelConfig",
     "Dataset",
+    "BaseDataset",
+    "PlanDataset",
+    "SSTDataset",
+    "PlanPreprocessor",
     "MetricSet",
     "ModelRun",
     "FocalLoss",

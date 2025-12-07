@@ -1,0 +1,34 @@
+
+# Define preprocessing schema and options
+time_window: monthly   # options: daily, weekly, monthly, quarterly
+
+feature_schema:
+  - termination_req
+  - termination_comp
+  - termination_days
+  - inserv_req
+  - inserv_comp
+  - inserv_days
+  - rollover_req
+  - rollover_comp
+  - rollover_days
+  - hardship_req
+  - hardship_comp
+  - hardship_days
+  - loan_req
+  - loan_comp
+  - loan_days
+  - exceptions_opened
+  - exceptions_resolved
+  - sla_breach_rate
+
+static_schema:
+  - hardship_allowed
+  - loan_allowed
+  - inserv_allowed
+  - participants
+  - median_balance
+  - median_age
+  - fee_distribution
+  - fee_loan_origination
+  - vendor_type

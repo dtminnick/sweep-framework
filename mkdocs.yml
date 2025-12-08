@@ -5,6 +5,7 @@ site_name: Sweep Framework Documentation
 nav:
   - Overview: overview.md
   - Technical Documentation:
+      - Features: classes/features.md
       - BaseDataset: classes/base_dataset.md
       - PlanDataset: classes/plan_dataset.md
       - PlanPreprocessor: classes/plan_preprocessor.md

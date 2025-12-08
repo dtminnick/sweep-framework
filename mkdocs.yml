@@ -21,8 +21,9 @@ nav:
       - FocalLoss: classes/focal_loss.md
       - LossStrategy: classes/loss_strategy.md
       - MetricSet: classes/metric_set.md
-      - BaseConfig: classes/model_config.md
+      - BaseConfig: classes/base_config.md
       - PlanModelConfig: classes/plan_config.md
+      - SSTConfig: classes/sst_config.md
       - ModelRun: classes/model_run.md
       - ReportBuilder: classes/report_builder.md
       - SweepAnalyzer: classes/sweep_analyzer.md

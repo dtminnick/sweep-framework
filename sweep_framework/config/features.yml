@@ -3,32 +3,83 @@
 time_window: monthly   # options: daily, weekly, monthly, quarterly
 
 feature_schema:
-  - termination_req
-  - termination_comp
-  - termination_days
-  - inserv_req
-  - inserv_comp
-  - inserv_days
-  - rollover_req
-  - rollover_comp
-  - rollover_days
-  - hardship_req
-  - hardship_comp
-  - hardship_days
-  - loan_req
-  - loan_comp
-  - loan_days
-  - exceptions_opened
-  - exceptions_resolved
-  - sla_breach_rate
+  termination_req:
+    type: continuous
+    normalization: zscore
+  termination_comp:
+    type: continuous
+    normalization: zscore
+  termination_days:
+    type: continuous
+    normalization: minmax
+  inserv_req:
+    type: continuous
+    normalization: zscore
+  inserv_comp:
+    type: continuous
+    normalization: zscore
+  inserv_days:
+    type: continuous
+    normalization: zscore
+  rollover_req:
+    type: continuous
+    normalization: zscore
+  rollover_comp:
+    type: continuous
+    normalization: zscore
+  rollover_days:
+    type: continuous
+    normalization: zscore
+  hardship_req:
+    type: continuous
+    normalization: zscore
+  hardship_comp:
+    type: continuous
+    normalization: zscore
+  hardship_days:
+    type: continuous
+    normalization: zscore
+  loan_req:
+    type: continuous
+    normalization: zscore
+  loan_comp:
+    type: continuous
+    normalization: zscore
+  loan_days:
+    type: continuous
+    normalization: zscore
+  exceptions_opened:
+    type: continuous
+    normalization: zscore
+  exceptions_resolved:
+    type: continuous
+    normalization: zscore
+  sla_breach_rate:
+    type: continuous
+    normalization: zscore
 
 static_schema:
-  - hardship_allowed
-  - loan_allowed
-  - inserv_allowed
-  - participants
-  - median_balance
-  - median_age
-  - fee_distribution
-  - fee_loan_origination
-  - vendor_type
+  hardship_allowed:
+    type: binary
+  loan_allowed:
+    type: binary
+  inserv_allowed:
+    type: binary
+  participants:
+    type: continuous
+    normalization: zscore
+  median_balance:
+    type: continuous
+    normalization: zscore
+  median_age:
+    type: continuous
+    normalization: zscore
+  fee_distribution:
+    type: continuous
+    normalization: zscore
+  fee_loan_origination:
+    type: continuous
+    normalization: zscore
+  vendor_type:
+    type: nominal 
+    encoding: onehot

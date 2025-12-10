@@ -68,11 +68,21 @@ Computes normalization statistics for continuous features using only the trainin
 
 ##### Parameters
 
-`raw_data`
+`raw_data: List[dict]`
 
-List of plan dictionaries with `month` and `static` keys.
+List of plan dictionaries.  Each plan must contain:
+
+`months` 
+
+List of period dictionaries with dynamic feature values.
+
+`static`
+
+Dictionary of static feature values.
 
 ##### Returns
+
+`dict`
 
 Dictionary mapping feature `{mean, std, min, max}`.
 
@@ -88,11 +98,19 @@ Normalizes a single feature value according to its schema.  Handles binary, cont
 
 `value`
 
-`feature`
+Raw feature value (float, int or string).
 
-`spec`
+`feature: str`
+
+Name of the feature being normalized.
+
+`spec: dict`
+
+Schema definition for the feature (type, normalization, categories, encoding).
 
 ##### Returns
+
+`float | int | torch.Tensor`
 
 A scalar, embedding index, or one-hot tensor.
 
@@ -104,11 +122,21 @@ A scalar, embedding index, or one-hot tensor.
 
 Converts one period's raw values into a dense vector and embedding indices.
 
+##### Parameters
+
+`period_dict: dict`
+
+Dictionary of raw feature values for a single time period.
+
 ##### Returns
 
-Dense feature vector (`torch.Tensor`).
+`torch.Tensor`
 
-Dict of embedding indices for nominal features.
+Dense feature vector.
+
+`dict`
+
+Dictionary of embedding indices for nominal features.
 
 ---
 
@@ -122,15 +150,31 @@ Transforms a full plan into model-ready tensors.
 
 `plan: dict`
 
+Plan dictionary with keys.
+
+* `months` is a list of period dicts. 
+* `static` is a dict of static features.
+* `label` is the integer class label. 
+
 ##### Returns
+
+`torch.Tensor`
 
 Dynamic sequence (`time x features`).
 
+`torch.Tensor`
+
 Static feature vector.
+
+`dict`
 
 Dynamic embedding indices.
 
+`dict`
+
 Statis embedding indices.
+
+`int`
 
 Label.
 
@@ -144,17 +188,19 @@ Builds a PyTorch `DataLoader` for a set of pre-processed examples.
 
 ##### Parameters
 
-`examples`
+`examples: List`
 
 List of tuples from `preprocess_plan`.
 
-`batch_size`
+`batch_size: int`
 
-Number of examples per batch.
+Number of examples per batch (default = 32).
 
 ##### Returns
 
-DataLoader yielding (`sequences, static_vecs, dynamic_embs, static_embs, labels`).
+`DataLoader`
+
+Loader yielding (`sequences, static_vecs, dynamic_embs, static_embs, labels`).
 
 ---
 

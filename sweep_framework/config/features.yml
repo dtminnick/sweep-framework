@@ -81,5 +81,11 @@ static_schema:
     type: continuous
     normalization: zscore
   vendor_type:
-    type: nominal 
-    encoding: onehot
+    type: nominal
+    encoding: embedding
+    categories: ["custodian_A", "custodian_B", "custodian_C", "custodian_D"]
+  fee_tier:
+    type: ordinal
+    encoding: index
+    normalization: zscore
+    categories: ["low", "medium", "high"]

@@ -16,8 +16,6 @@ nav:
   - Technical Documentation:
       - BaseDataset: classes/base_dataset.md
       - PlanDataset: classes/plan_dataset.md
-      - PlanPreprocessor: classes/plan_preprocessor.md
-      - SSTDataset: classes/sst_dataset.md
       - FocalLoss: classes/focal_loss.md
       - LossStrategy: classes/loss_strategy.md
       - MetricSet: classes/metric_set.md

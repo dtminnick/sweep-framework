@@ -3,105 +3,190 @@
 
 ## Overview
 
-The `Dataset` class is responsible for managing raw examples, splitting them into training/validation/test sets, and building PyTorch `DataLoader` objects.  
-It acts as the **data pipeline layer** in the Sweep Framework, bridging external datasets (e.g., HuggingFace GLUE SST‑2) with the training loop in `ModelRun`.
+The `BaseDataset` class provides the core data pipeline layer in the Sweep Framrwork.  It standardizes how raw plan dictionaries are transformed into tensors for model training and evaluation.
 
-### Purpose in the Architecture
-- **Input management**: Accepts raw `(text, label)` pairs.
-- **Splitting**: Performs stratified splits to preserve class distribution across train/val/test sets.
-- **Loader construction**: Uses a HuggingFace tokenizer to convert text into tensors (`input_ids`, `attention_mask`, `labels`).
-- **Integration**: Supplies batches to the model during training and evaluation.
+---
+
+## Purpose in the Architecture
+
+* **Schema management**: Loads feature and static schemas from a YAML configuration file.
+* **Normalization**: Computes statistics (mean, standard deviation, minimum, maximum) from the training split and applies them consistently across the training, validation, and test splits.
+* **Feature construction**: Converts raw monthly and static fields into dense tensors and embedding indices.
+* **Integration**: Supplies pre-processed batches to models via PyTorch `DataLoader`.
 
 ---
 
 ## Class Reference
 
-### `Dataset`
+`BaseDataset`
 
-`Dataset(examples: List[Tuple[str, int]])`
+`BaseDataset(config_path = 'features.yml', verbose = False)`
 
-#### Parameters
-- **`examples: List[Tuple[str, int]]`**  
-  Raw dataset examples as `(text, label)` pairs.  
-  - `text`: string input (sentence/document).  
-  - `label`: integer class index. Must be in `[0, num_classes-1]`.  
+---
 
-  Important: Filter out invalid labels (e.g., `-1` in SST‑2 test set).
+### Parameters
+
+`config_path: str`
+
+Path to the YAML configuration file defining `feature_schema`, `static_schema`, and `time_window`.
+
+`verbose: bool`
+
+If `True`, logs pre-processing steps for debugging.
 
 ---
 
 ### Attributes
-- **`examples`**: List of all raw `(text, label)` pairs.  
-- **`train_examples`**: Subset used for training.  
-- **`val_examples`**: Subset used for validation.  
-- **`test_examples`**: Subset used for testing.  
-- **`train_loader`**: PyTorch `DataLoader` for training set.  
-- **`val_loader`**: PyTorch `DataLoader` for validation set.  
-- **`test_loader`**: PyTorch `DataLoader` for test set.  
+
+`feature_schema`
+
+Dictionary of dynamic feature definitions.
+
+`static_schema`
+
+Dictionary of static feature definitions.
+
+`time_window`
+
+Granularity of dynamic data, e.g. `daily`, `weekly`, `monthly`, `quarterly`.
+
+`stats`
+
+Normalization statistics computed from the training data.
 
 ---
 
 ### Methods
 
-#### `stratify_split`
+---
 
-`stratify_split(train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=42)`
+#### `compute_stats`
 
-Splits the dataset into train/val/test sets while preserving class distribution.
+`compute_stats(raw_data: List[dict]) -> dict`
 
-- **Parameters**:
-  - `train_ratio: float` → proportion of examples for training, default 0.8.
-  - `val_ratio: float` → proportion for validation, default 0.1.
-  - `test_ratio: float` → proportion for testing, default 0.1.
-  - `seed: int` → random seed for reproducibility, default 42.
+Computes normalization statistics for continuous features using only the training split.
 
-- **Outputs**:
-  - Populates `train_examples`, `val_examples`, `test_examples`.
+##### Parameters
+
+`raw_data`
+
+List of plan dictionaries with `month` and `static` keys.
+
+##### Returns
+
+Dictionary mapping feature `{mean, std, min, max}`.
+
+---
+
+#### `normalize`
+
+`normalize(value, feature, spec) -> float | int | torch.Tensor`
+
+Normalizes a single feature value according to its schema.  Handles binary, continuous (z-score, min-max), ordinal, and nominal (embedding or one-hot) types.  
+
+##### Parameters
+
+`value`
+
+`feature`
+
+`spec`
+
+##### Returns
+
+A scalar, embedding index, or one-hot tensor.
+
+---
+
+#### `to_features`
+
+`to_features(period_dict: dict) -> Tuple[torch.Tensor, dict]`
+
+Converts one period's raw values into a dense vector and embedding indices.
+
+##### Returns
+
+Dense feature vector (`torch.Tensor`).
+
+Dict of embedding indices for nominal features.
+
+---
+
+#### `preprocess_plan`
+
+`preprocess_plan(plan: dict) -> Tuple[torch.Tensor, torch.Tensor, dict, dict int]`
+
+Transforms a full plan into model-ready tensors.
+
+##### Parameters
+
+`plan: dict`
+
+##### Returns
+
+Dynamic sequence (`time x features`).
+
+Static feature vector.
+
+Dynamic embedding indices.
+
+Statis embedding indices.
+
+Label.
 
 ---
 
 #### `build_loaders`
 
-`build_loaders(tokenizer, batch_size=32, max_len=128)`
+`build_loaders(examples: List, batch_size = 32) -> DataLoader`
 
-Builds PyTorch `DataLoader` objects for each split.
+Builds a PyTorch `DataLoader` for a set of pre-processed examples.
 
-- **Parameters**:
-  - `tokenizer`: HuggingFace tokenizer (e.g., `AutoTokenizer`).  
-  - `batch_size: int` → batch size for loaders, default 32.
-  - `max_len: int` → maximum sequence length for tokenization, default 128.
+##### Parameters
 
-- **Outputs**:
-  - Populates `train_loader`, `val_loader`, `test_loader`.  
-  - Each loader yields batches of `(input_ids, attention_mask, labels)` tensors.
+`examples`
+
+List of tuples from `preprocess_plan`.
+
+`batch_size`
+
+Number of examples per batch.
+
+##### Returns
+
+DataLoader yielding (`sequences, static_vecs, dynamic_embs, static_embs, labels`).
 
 ---
 
 ## Usage Example
 
-```python
-from sweep_framework.data.dataset import Dataset
-from transformers import AutoTokenizer
-from datasets import load_dataset
+```{python}
+from sweep_framework.data.plan_dataset import PlanDataset
+import pandas as pd
 
-# Load SST-2 dataset
-hf_ds = load_dataset("stanfordnlp/sst2")
+# Load expanded raw input CSV
+df = pd.read_csv("sweep_framework/documentation/usage/raw_input_data.txt")
 
-# Filter out invalid labels (-1)
-train_examples = [(ex["sentence"], int(ex["label"])) for ex in hf_ds["train"] if ex["label"] != -1]
-val_examples   = [(ex["sentence"], int(ex["label"])) for ex in hf_ds["validation"] if ex["label"] != -1]
-test_examples  = [(ex["sentence"], int(ex["label"])) for ex in hf_ds["test"] if ex["label"] != -1]
+# Convert to plan dictionaries
+plans = []
+for pid, group in df.groupby("plan_id"):
+    months = group.to_dict(orient="records")
+    static_fields = {col: group.iloc[0][col] for col in [
+        "hardship_allowed","loan_allowed","inserv_allowed",
+        "participants","median_balance","median_age",
+        "fee_distribution","fee_loan_origination","vendor_type","fee_tier"
+    ]}
+    label = group.iloc[0]["label"]
+    plans.append({"plan_id": str(pid), "months": months, "static": static_fields, "label": label})
 
-# Combine into one dataset object
-dataset = Dataset(train_examples + val_examples + test_examples)
+# Instantiate dataset (handles split + stats internally)
+dataset = PlanDataset(plans, config_path="sweep_framework/config/features.yml", verbose=True)
 
-# Stratified split
-dataset.stratify_split(train_ratio=0.8, val_ratio=0.1, test_ratio=0.1, seed=42)
+# Inspect normalization stats
+print(dataset.stats)
 
 # Build loaders
-tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-dataset.build_loaders(tokenizer, batch_size=32, max_len=128)
-
-# Inspect loaders
-print(len(dataset.train_loader), len(dataset.val_loader), len(dataset.test_loader))
+dataset.build_loaders(batch_size=32)
+batch = next(iter(dataset.train_loader))
+print(batch[0].shape, batch[1].shape, batch[4])  # sequences, static_vecs, labels
 ```

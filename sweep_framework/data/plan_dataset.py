@@ -51,7 +51,28 @@ class PlanDataset(BaseDataset):
             - Preprocesses raw plans into tensors for each split.
         """
         super().__init__(config_path=config_path, verbose=verbose)
-        ...
+        
+                # Step 1: stratified split by label
+        labels = [plan["label"] for plan in raw_data]
+        train_raw, temp_raw, train_labels, temp_labels = train_test_split(
+            raw_data, labels, stratify=labels,
+            test_size=(1 - train_ratio), random_state=seed
+        )
+        val_size = val_ratio / (val_ratio + test_ratio)
+        val_raw, test_raw, _, _ = train_test_split(
+            temp_raw, temp_labels, stratify=temp_labels,
+            test_size=(1 - val_size), random_state=seed
+        )
+
+        self.raw_train, self.raw_val, self.raw_test = train_raw, val_raw, test_raw
+
+        # Step 2: compute stats from training split
+        self.compute_stats(self.raw_train)
+
+        # Step 3: preprocess each split
+        self.train_examples = [self.preprocess_plan(p) for p in self.raw_train]
+        self.val_examples   = [self.preprocess_plan(p) for p in self.raw_val]
+        self.test_examples  = [self.preprocess_plan(p) for p in self.raw_test]
     
     def __len__(self):
         """

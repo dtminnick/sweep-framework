@@ -12,7 +12,7 @@ Responsibilities:
 
 from typing import List, Optional
 from sweep_framework.config.model_config import ModelConfig
-from sweep_framework.data.dataset import Dataset
+from sweep_framework.data.plan_dataset import PlanDataset
 from sweep_framework.model.model_run import ModelRun
 
 
@@ -28,7 +28,7 @@ class Sweep:
         runs (List[ModelRun]): Completed runs.
     """
 
-    def __init__(self, name: str, config_grid: List[ModelConfig], dataset: Dataset, run_group: Optional[str] = None):
+    def __init__(self, name: str, config_grid: List[ModelConfig], dataset: PlanDataset, run_group: Optional[str] = None):
         self.name = name
         self.config_grid = config_grid
         self.dataset = dataset

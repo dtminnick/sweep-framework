@@ -14,7 +14,7 @@ Responsibilities:
 from typing import Optional
 import torch
 from sweep_framework.config.model_config import ModelConfig
-from sweep_framework.data.dataset import Dataset
+from sweep_framework.data.plan_dataset import PlanDataset
 from sweep_framework.metrics.metric_set import MetricSet
 from sweep_framework.model.loss_strategy import LossStrategy
 
@@ -36,7 +36,7 @@ class ModelRun:
         early_stopping_triggered (bool): Flag for early stopping.
     """
 
-    def __init__(self, config: ModelConfig, dataset: Dataset, loss_strategy: Optional[LossStrategy] = None):
+    def __init__(self, config: ModelConfig, dataset: PlanDataset, loss_strategy: Optional[LossStrategy] = None):
         self.config = config
         self.dataset = dataset
         self.loss_strategy = loss_strategy or LossStrategy.from_config(config)

@@ -36,21 +36,29 @@ for pid, group in df.groupby("plan_id"):
     })
 
 # Instantiate PlanDataset (handles stats + preprocessing internally)
-dataset = PlanDataset(plans, config_path="sweep_framework/config/features.yml", verbose=True)
+dataset = PlanDataset(plans, 
+                      config_path="sweep_framework/config/features.yml", 
+                      train_ratio=0.7, 
+                      val_ratio=0.2, 
+                      test_ratio=0.1,
+                      verbose=True)
 
 # Inspect stats computed from training split
-print("=== Normalization Stats (training only) ===")
-print(dataset.stats)
+print("Normalization Stats (training only)")
 print()
+print(dataset.stats)
 print()
 
 # Inspect preprocessed examples
 for dynamic_seq, static_vec, embedding_indices, static_embs, label in dataset.train_examples:
     print("Dynamic sequence shape:", dynamic_seq.shape)
+    print()
     print("Static vector:", static_vec.tolist())
+    print()
     print("Dynamic embedding indices:", {k: v.tolist() for k, v in embedding_indices.items()})
+    print()
     print("Static embedding indices:", {k: v.item() for k, v in static_embs.items()})
+    print()
     print("Label:", label)
     print()
-    print()
-
+    
